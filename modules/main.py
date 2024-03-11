@@ -43,20 +43,20 @@ async def restart_handler(_, m):
 
 
 
-# Variable to store the filename of the QR code image
+# Variable to store the QR code filename
 qr_code_filename = "qr_code.jpg"
-premium_channel_id = "2068103135"  # Replace with your premium channel ID
 
-# Command to set the QR code image
-@bot.on_message(filters.command(["set"]) & filters.user(owner_user_id))
+# Handler for the "set" command
+@bot.on_message(filters.user(owner_user_id) & filters.command("set") & filters.reply & filters.photo)
 async def set_qr_code(bot: Client, m: Message):
-    # Check if a photo is attached to the message
-    if m.photo:
-        # Download the photo and save it as the QR code image
-        qr_code_file = await m.download(qr_code_filename)
-        await m.reply_text("QR code image set successfully.")
-    else:
-        await m.reply_text("Please attach a photo containing the QR code image.")
+    # Get the photo file ID
+    photo_file_id = m.reply_to_message.photo.file_id
+    
+    # Download the photo and save it as the QR code file
+    await bot.download_media(photo_file_id, file_name=qr_code_filename)
+    
+    # Send a message to confirm that the QR code has been set
+    await m.reply_text("QR code has been set successfully.")
 
 @bot.on_message(filters.command(["upload"]))
 async def account_login(bot: Client, m: Message):
