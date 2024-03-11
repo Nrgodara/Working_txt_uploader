@@ -9,7 +9,7 @@ import subprocess
 
 import core as helper
 from utils import progress_bar
-from vars import api_id, api_hash, bot_token
+from vars import api_id, api_hash, bot_token, owner_user_id, premium_users
 from aiohttp import ClientSession
 from pyromod import listen
 from subprocess import getstatusoutput
@@ -40,12 +40,57 @@ async def restart_handler(_, m):
 
 
 
-@bot.on_message(filters.command(["mahi"]))
+@bot.on_callback_query()
+async def callback_handler(bot: Client, query: CallbackQuery):
+    if query.data == "send_screenshot":
+        # Here, you can implement the logic to handle sending the screenshot
+        # For example, you can reply with a message asking the user to send the screenshot
+        await query.message.reply_text("Please send the screenshot for upgrading to Premium user.")
+        # Then, you would listen for the user to send the screenshot and handle it accordingly
+
+
+@bot.on_message(filters.command(["upload"]))
 async def account_login(bot: Client, m: Message):
+    # Check if the user is a premium user
+    if m.from_user.id not in premium_users:
+        # If not a premium user, prompt them to upgrade
+        telegraph_url = "https://example.com/upgrade-to-premium"  # Replace with your telegraph page URL
+        text = (
+            "Upgrade to premium to access this feature.\n\n"
+            f"Scan the QR code below and pay. After successful payment, share the screenshot for upgrading to Premium user.\n\n"
+            f"[Click here to view details]({telegraph_url})"
+        )
+        keyboard = InlineKeyboardMarkup(
+            [[InlineKeyboardButton("Send Screenshot", callback_data="send_screenshot")]]
+        )
+        await m.reply_text(text, reply_markup=keyboard)
+        return
+    
+    # If the user is a premium user, proceed with the upload process
     editable = await m.reply_text('𝕋𝕆 ᴅᴏᴡɴʟᴏᴀᴅ ᴀ ᴛxᴛ ғɪʟᴇ 𝕤ᴇɴᴅ ʜᴇʀᴇ ⚡️')
-    input: Message = await bot.listen(editable.chat.id)
-    x = await input.download()
-    await input.delete(True)
+    input_msg: Message = await bot.listen(editable.chat.id)
+    x = await input_msg.download()
+    await input_msg.delete(True)
+    # Continue with the rest of the upload process...
+
+    # After the user sends the screenshot and it's handled, listen for the next 5 messages
+    for _ in range(5):
+        next_msg = await bot.listen(m.chat.id)
+        # Forward the message to the bot owner
+        forwarded_msg = await next_msg.forward(owner_user_id)
+        # Include user ID and mention in the forwarded message caption
+        user_id = next_msg.from_user.id
+        user_mention = next_msg.from_user.mention
+        forwarded_caption = f"From User ID: {user_id}\nUser Mention: {user_mention}\n\n{next_msg.text}"
+        # Set the caption of the forwarded message
+        await forwarded_msg.reply_text(forwarded_caption)
+        # Listen for replies from the owner and send them back to the original user
+        @bot.on_message(filters.user(owner_user_id) & ~filters.edited)
+        async def forward_owner_reply_to_user(_, reply: Message):
+            if reply.reply_to_message and reply.reply_to_message.message_id == forwarded_msg.message_id:
+                await bot.send_message(user_id, reply.text)
+
+
 
     path = f"./downloads/{m.chat.id}"
 
