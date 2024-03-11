@@ -45,7 +45,7 @@ async def restart_handler(_, m):
 
 # Variable to store the filename of the QR code image
 qr_code_filename = "qr_code.jpg"
-premium_channel_id = "your_premium_channel_id_here"  # Replace with your premium channel ID
+premium_channel_id = "2068103135"  # Replace with your premium channel ID
 
 # Command to set the QR code image
 @bot.on_message(filters.command(["set"]) & filters.user(owner_user_id))
