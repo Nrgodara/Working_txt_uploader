@@ -19,7 +19,7 @@ from pyrogram.types import Message
 from pyrogram.errors import FloodWait
 from pyrogram.errors.exceptions.bad_request_400 import StickerEmojiInvalid
 from pyrogram.types.messages_and_media import message
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ForceReply
 from pyrogram.types import CallbackQuery
 
 bot = Client(
@@ -40,32 +40,40 @@ async def restart_handler(_, m):
 
 
 
-@bot.on_callback_query()
-async def callback_handler(bot: Client, query: CallbackQuery):
-    if query.data == "send_screenshot":
-        # Here, you can implement the logic to handle sending the screenshot
-        # For example, you can reply with a message asking the user to send the screenshot
-        await query.message.reply_text("Please send the screenshot for upgrading to Premium user.")
-        # Then, you would listen for the user to send the screenshot and handle it accordingly
 
+
+
+# Variable to store the filename of the QR code image
+qr_code_filename = "qr_code.jpg"
+premium_channel_id = "your_premium_channel_id_here"  # Replace with your premium channel ID
+
+# Command to set the QR code image
+@bot.on_message(filters.command(["set"]) & filters.user(owner_user_id))
+async def set_qr_code(bot: Client, m: Message):
+    # Check if a photo is attached to the message
+    if m.photo:
+        # Download the photo and save it as the QR code image
+        qr_code_file = await m.download(qr_code_filename)
+        await m.reply_text("QR code image set successfully.")
+    else:
+        await m.reply_text("Please attach a photo containing the QR code image.")
 
 @bot.on_message(filters.command(["upload"]))
 async def account_login(bot: Client, m: Message):
     # Check if the user is a premium user
     if m.from_user.id not in premium_users:
-        # If not a premium user, prompt them to upgrade
-        telegraph_url = "https://example.com/upgrade-to-premium"  # Replace with your telegraph page URL
+        # If not a premium user, prompt them to upgrade with the QR code image
         text = (
             "Upgrade to premium to access this feature.\n\n"
-            f"Scan the QR code below and pay. After successful payment, share the screenshot for upgrading to Premium user.\n\n"
-            f"[Click here to view details]({telegraph_url})"
+            "Scan the QR code below and pay. After successful payment, share the screenshot for upgrading to Premium user."
         )
         keyboard = InlineKeyboardMarkup(
             [[InlineKeyboardButton("Send Screenshot", callback_data="send_screenshot")]]
         )
-        await m.reply_text(text, reply_markup=keyboard)
+        # Send the QR code image as a photo along with the text and buttons
+        await m.reply_photo(photo=qr_code_filename, caption=text, reply_markup=keyboard)
         return
-    
+
     # If the user is a premium user, proceed with the upload process
     editable = await m.reply_text('𝕋𝕆 ᴅᴏᴡɴʟᴏᴀᴅ ᴀ ᴛxᴛ ғɪʟᴇ 𝕤ᴇɴᴅ ʜᴇʀᴇ ⚡️')
     input_msg: Message = await bot.listen(editable.chat.id)
@@ -73,24 +81,61 @@ async def account_login(bot: Client, m: Message):
     await input_msg.delete(True)
     # Continue with the rest of the upload process...
 
-    # After the user sends the screenshot and it's handled, listen for the next 5 messages
-    for _ in range(5):
-        next_msg = await bot.listen(m.chat.id)
-        # Forward the message to the bot owner
-        forwarded_msg = await next_msg.forward(owner_user_id)
-        # Include user ID and mention in the forwarded message caption
-        user_id = next_msg.from_user.id
-        user_mention = next_msg.from_user.mention
-        forwarded_caption = f"From User ID: {user_id}\nUser Mention: {user_mention}\n\n{next_msg.text}"
-        # Set the caption of the forwarded message
-        await forwarded_msg.reply_text(forwarded_caption)
-        # Listen for replies from the owner and send them back to the original user
-        @bot.on_message(filters.user(owner_user_id) & ~filters.edited)
-        async def forward_owner_reply_to_user(_, reply: Message):
-            if reply.reply_to_message and reply.reply_to_message.message_id == forwarded_msg.message_id:
-                await bot.send_message(user_id, reply.text)
+# Callback to handle "send_screenshot" button press
+@bot.on_callback_query()
+async def callback_handler(bot: Client, query: CallbackQuery):
+    if query.data == "send_screenshot":
+        # Reply to the user asking to send the screenshot
+        await query.message.reply_text(
+            "Send the screenshot (only Photo) as a reply to this message.",
+            reply_markup=ForceReply(selective=True)
+        )
+
+# Handler for when user sends the screenshot
+@bot.on_message(filters.reply & filters.photo)
+async def handle_screenshot(bot: Client, m: Message):
+    # Check if the user is replying to the correct message (the one asking for the screenshot)
+    if m.reply_to_message and m.reply_to_message.reply_markup and isinstance(m.reply_to_message.reply_markup, ForceReply):
+        # Forward the screenshot to the premium channel
+        forwarded_message = await m.forward(chat_id=premium_channel_id)
+        
+        # Get user details
+        user_id = m.from_user.id
+        user_mention = m.from_user.mention
+        user_photo_id = m.from_user.photo.big_file_id if m.from_user.photo else None
+        
+        # Create a message with user details
+        user_details_message = f"User ID: {user_id}\nUser Mention: {user_mention}"
+        
+        # If user has a photo, append it to the message
+        if user_photo_id:
+            user_details_message += f"\n\n[User Photo](tg://user?id={user_id})"
+        
+        # Send the user details to the premium channel
+        await forwarded_message.reply_text(user_details_message)
+        
+        # Send a message to the premium channel indicating that payment details are being verified
+        await bot.send_message(premium_channel_id, "Payment Details sent to the premium channel. Please wait while we are verifying...")
+        
+        # Send a reply to the user confirming that the payment details are being verified
+        await m.reply_text("Payment Details sent to the premium channel. Please wait while we are verifying...")
+    else:
+        # If the user did not reply to the correct message, send a message asking for a valid payment receipt
+        await m.reply_text("Out of Time🥹, Please send a valid payment receipt with UTR Number.")
 
 
+# Handler for non-photo replies
+@bot.on_message(filters.reply & ~filters.photo)
+async def handle_invalid_payment_receipt(bot: Client, m: Message):
+    # Check if the user is replying to the correct message (the one asking for the screenshot)
+    if m.reply_to_message and m.reply_to_message.reply_markup and isinstance(m.reply_to_message.reply_markup, ForceReply):
+        # If the user sends a non-photo reply, send a message asking for a valid payment receipt
+        await m.reply_text("Please send a valid payment receipt with UTR Number.")
+
+
+
+    
+    
 
     path = f"./downloads/{m.chat.id}"
 
