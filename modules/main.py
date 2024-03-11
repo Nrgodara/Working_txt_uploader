@@ -58,7 +58,7 @@ async def set_qr_code(bot: Client, m: Message):
     # Send a message to confirm that the QR code has been set
     await m.reply_text("QR code has been set successfully.")
 
-@bot.on_message(filters.command(["upload"]))
+@bot.on_message(filters.command(["mahi"]))
 async def account_login(bot: Client, m: Message):
     # Check if the user is a premium user
     if m.from_user.id not in premium_users:
