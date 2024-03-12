@@ -21,6 +21,7 @@ from pyrogram.errors.exceptions.bad_request_400 import StickerEmojiInvalid
 from pyrogram.types.messages_and_media import message
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
 from pyrogram.types import CallbackQuery
+from premium import handle_non_premium, handle_free_trial, handle_upgrade_premium
 
 
 bot = Client(
@@ -45,15 +46,8 @@ async def restart_handler(_, m):
 @bot.on_message(filters.command(["upload"]))
 async def account_login(bot: Client, m: Message):
     if m.from_user.id not in premium_users:
-    
-    # Non-premium user logic
-        await m.reply_text(
-            "Sorry, this feature is only available for premium members. Upgrade to a premium plan to access it.\n\n"
-            "To inquire about premium plans or upgrade options, contact the bot owner."
-        )
-    
+        await handle_non_premium(bot, m, premium_users)
     else:
-        
         # Premium user logic
         editable = await m.reply_text('𝕋𝕆 ᴅᴏᴡɴʟᴏᴀᴅ ᴀ ᴛxᴛ ғɪʟᴇ 𝕤ᴇɴᴅ ʜᴇʀᴇ ⚡️')
         # Rest of the code for premium users...
