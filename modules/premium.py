@@ -1,9 +1,10 @@
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup
+from pyrogram.types import CallbackQuery
 
 async def handle_non_premium(bot, m, premium_users):
     reply_text = (
         "𝑺𝒐𝒓𝒓𝒚 𝑩𝒐𝒔𝒔 𝑶𝒏𝒍𝒚 𝑷𝒓𝒆𝒎𝒊𝒖𝒎 𝑼𝒔𝒆𝒓𝒔 𝑪𝒂𝒏 𝑼𝒔𝒆 𝑴𝒆 🙂 \n\n"
-        "Uᴘɢʀᴀᴅᴇ  ᴘʀᴇᴍɪᴜᴍ ᴛᴏ Use Me😎"
+        "**Uᴘɢʀᴀᴅᴇ Pʀᴇᴍɪᴜᴍ ᴛᴏ Use Me😎**"
     )
     keyboard = InlineKeyboardMarkup([
         [InlineKeyboardButton("𝑼𝒑𝒈𝒓𝒂𝒅𝒆 𝑷𝒓𝒆𝒎𝒊𝒖𝒎✅", callback_data="upgrade_premium"),
