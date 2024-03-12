@@ -79,64 +79,8 @@ async def account_login(bot: Client, m: Message):
     input_msg: Message = await bot.listen(editable.chat.id)
     x = await input_msg.download()
     await input_msg.delete(True)
-    # Continue with the rest of the upload process...
-
-# Callback to handle "send_screenshot" button press
-@bot.on_callback_query()
-async def callback_handler(bot: Client, query: CallbackQuery):
-    if query.data == "send_screenshot":
-        # Reply to the user asking to send the screenshot
-        await query.message.reply_text(
-            "Send the screenshot (only Photo) as a reply to this message.",
-            reply_markup=ForceReply(selective=True)
-        )
-
-# Handler for when user sends the screenshot
-@bot.on_message(filters.reply & filters.photo)
-async def handle_screenshot(bot: Client, m: Message):
-    # Check if the user is replying to the correct message (the one asking for the screenshot)
-    if m.reply_to_message and m.reply_to_message.reply_markup and isinstance(m.reply_to_message.reply_markup, ForceReply):
-        # Forward the screenshot to the premium channel
-        forwarded_message = await m.forward(chat_id=premium_channel_id)
-        
-        # Get user details
-        user_id = m.from_user.id
-        user_mention = m.from_user.mention
-        user_photo_id = m.from_user.photo.big_file_id if m.from_user.photo else None
-        
-        # Create a message with user details
-        user_details_message = f"User ID: {user_id}\nUser Mention: {user_mention}"
-        
-        # If user has a photo, append it to the message
-        if user_photo_id:
-            user_details_message += f"\n\n[User Photo](tg://user?id={user_id})"
-        
-        # Send the user details to the premium channel
-        await forwarded_message.reply_text(user_details_message)
-        
-        # Send a message to the premium channel indicating that payment details are being verified
-        await bot.send_message(premium_channel_id, "Payment Details sent to the premium channel. Please wait while we are verifying...")
-        
-        # Send a reply to the user confirming that the payment details are being verified
-        await m.reply_text("Payment Details sent to the premium channel. Please wait while we are verifying...")
-    else:
-        # If the user did not reply to the correct message, send a message asking for a valid payment receipt
-        await m.reply_text("Out of Time🥹, Please send a valid payment receipt with UTR Number.")
-
-
-# Handler for non-photo replies
-@bot.on_message(filters.reply & ~filters.photo)
-async def handle_invalid_payment_receipt(bot: Client, m: Message):
-    # Check if the user is replying to the correct message (the one asking for the screenshot)
-    if m.reply_to_message and m.reply_to_message.reply_markup and isinstance(m.reply_to_message.reply_markup, ForceReply):
-        # If the user sends a non-photo reply, send a message asking for a valid payment receipt
-        await m.reply_text("Please send a valid payment receipt with UTR Number.")
-
-
-
+     #Continue with the rest of the upload process...
     
-    
-
     path = f"./downloads/{m.chat.id}"
 
     try:
@@ -297,6 +241,62 @@ async def handle_invalid_payment_receipt(bot: Client, m: Message):
         await m.reply_text(e)
     await m.reply_text("**𝔻ᴏɴᴇ 𝔹ᴏ𝕤𝕤😎**")
     
+
+# Callback to handle "send_screenshot" button press
+@bot.on_callback_query()
+async def callback_handler(bot: Client, query: CallbackQuery):
+    if query.data == "send_screenshot":
+        # Reply to the user asking to send the screenshot
+        await query.message.reply_text(
+            "Send the screenshot (only Photo) as a reply to this message.",
+            reply_markup=ForceReply(selective=True)
+        )
+
+# Handler for when user sends the screenshot
+@bot.on_message(filters.reply & filters.photo)
+async def handle_screenshot(bot: Client, m: Message):
+    # Check if the user is replying to the correct message (the one asking for the screenshot)
+    if m.reply_to_message and m.reply_to_message.reply_markup and isinstance(m.reply_to_message.reply_markup, ForceReply):
+        # Forward the screenshot to the premium channel
+        forwarded_message = await m.forward(chat_id=premium_channel_id)
+        
+        # Get user details
+        user_id = m.from_user.id
+        user_mention = m.from_user.mention
+        user_photo_id = m.from_user.photo.big_file_id if m.from_user.photo else None
+        
+        # Create a message with user details
+        user_details_message = f"User ID: {user_id}\nUser Mention: {user_mention}"
+        
+        # If user has a photo, append it to the message
+        if user_photo_id:
+            user_details_message += f"\n\n[User Photo](tg://user?id={user_id})"
+        
+        # Send the user details to the premium channel
+        await forwarded_message.reply_text(user_details_message)
+        
+        # Send a message to the premium channel indicating that payment details are being verified
+        await bot.send_message(premium_channel_id, "Payment Details sent to the premium channel. Please wait while we are verifying...")
+        
+        # Send a reply to the user confirming that the payment details are being verified
+        await m.reply_text("Payment Details sent to the premium channel. Please wait while we are verifying...")
+    else:
+        # If the user did not reply to the correct message, send a message asking for a valid payment receipt
+        await m.reply_text("Out of Time🥹, Please send a valid payment receipt with UTR Number.")
+
+
+# Handler for non-photo replies
+@bot.on_message(filters.reply & ~filters.photo)
+async def handle_invalid_payment_receipt(bot: Client, m: Message):
+    # Check if the user is replying to the correct message (the one asking for the screenshot)
+    if m.reply_to_message and m.reply_to_message.reply_markup and isinstance(m.reply_to_message.reply_markup, ForceReply):
+        # If the user sends a non-photo reply, send a message asking for a valid payment receipt
+        await m.reply_text("Please send a valid payment receipt with UTR Number.")
+
+
+
+    
+
 
 
 bot.run()
