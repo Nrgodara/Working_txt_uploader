@@ -9,7 +9,7 @@ import subprocess
 
 import core as helper
 from utils import progress_bar
-from vars import api_id, api_hash, bot_token
+from vars import api_id, api_hash, bot_token, premium_users
 from aiohttp import ClientSession
 from pyromod import listen
 from subprocess import getstatusoutput
@@ -44,10 +44,21 @@ async def restart_handler(_, m):
 
 @bot.on_message(filters.command(["upload"]))
 async def account_login(bot: Client, m: Message):
-    editable = await m.reply_text('𝕋𝕆 ᴅᴏᴡɴʟᴏᴀᴅ ᴀ ᴛxᴛ ғɪʟᴇ 𝕤ᴇɴᴅ ʜᴇʀᴇ ⚡️')
-    input: Message = await bot.listen(editable.chat.id)
-    x = await input.download()
-    await input.delete(True)
+    if m.from_user.id not in premium_users:
+    
+    # Non-premium user logic
+        await m.reply_text(
+            "Sorry, this feature is only available for premium members. Upgrade to a premium plan to access it.\n\n"
+            "To inquire about premium plans or upgrade options, contact the bot owner."
+        )
+    
+    else:
+        
+        # Premium user logic
+        editable = await m.reply_text('𝕋𝕆 ᴅᴏᴡɴʟᴏᴀᴅ ᴀ ᴛxᴛ ғɪʟᴇ 𝕤ᴇɴᴅ ʜᴇʀᴇ ⚡️')
+        # Rest of the code for premium users...
+        
+
 
     path = f"./downloads/{m.chat.id}"
 
