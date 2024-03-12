@@ -29,6 +29,7 @@ bot = Client(
     bot_token=bot_token)
 
 
+qr_code_filename = "qr_code.jpg"
 
 # Handler for the "set" command
 @bot.on_message(filters.user(owner_user_id) & filters.command("set") & filters.reply)
