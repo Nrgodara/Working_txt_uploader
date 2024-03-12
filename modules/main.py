@@ -34,16 +34,25 @@ bot = Client(
 qr_code_filename = "qr_code.jpg"
 
 # Handler for the "set" command
-@bot.on_message(filters.user(owner_user_id) & filters.command("set") & filters.reply & filters.photo)
+@bot.on_message(filters.user(owner_user_id) & filters.command("set") & filters.reply & (filters.photo | filters.document))
 async def set_qr_code(bot: Client, m: Message):
-    # Get the photo file ID
-    photo_file_id = m.reply_to_message.photo.file_id
-    
-    # Download the photo and save it as the QR code file
-    await bot.download_media(photo_file_id, file_name=qr_code_filename)
-    
-    # Send a message to confirm that the QR code has been set
-    await m.reply_text("QR code has been set successfully.")
+    # Check if the replied message is a photo or a document containing photo media
+    if m.reply_to_message.photo or (m.reply_to_message.document and "image" in m.reply_to_message.document.mime_type):
+        # Get the media file ID
+        media_file_id = None
+        if m.reply_to_message.photo:
+            media_file_id = m.reply_to_message.photo.file_id
+        elif m.reply_to_message.document:
+            media_file_id = m.reply_to_message.document.file_id
+        
+        # Download the media and save it as the QR code file
+        await bot.download_media(media_file_id, file_name=qr_code_filename)
+        
+        # Send a message to confirm that the QR code has been set
+        await m.reply_text("QR code has been set successfully.")
+    else:
+        # If the replied message is neither a photo nor a document containing photo media, send an error message
+        await m.reply_text("Please reply to a photo or a document containing photo media.")
 
 
 
