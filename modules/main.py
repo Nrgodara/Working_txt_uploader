@@ -28,33 +28,20 @@ bot = Client(
     api_hash=api_hash,
     bot_token=bot_token)
 
-
+# Variable to store the QR code filename
 qr_code_filename = "qr_code.jpg"
 
 # Handler for the "set" command
-@bot.on_message(filters.user(owner_user_id) & filters.command("set") & filters.reply)
+@bot.on_message(filters.user(owner_user_id) & filters.command("set") & filters.reply & filters.photo)
 async def set_qr_code(bot: Client, m: Message):
-    # Check if the replied message is a photo or a document containing photo media
-    if m.reply_to_message.photo or (m.reply_to_message.document and "image" in m.reply_to_message.document.mime_type):
-        # Get the media file ID
-        media_file_id = None
-        if m.reply_to_message.photo:
-            media_file_id = m.reply_to_message.photo.file_id
-        elif m.reply_to_message.document:
-            media_file_id = m.reply_to_message.document.file_id
-        
-        # Download the media and save it as the QR code file
-        await bot.download_media(media_file_id, file_name=qr_code_filename)
-        
-        # Send a message to confirm that the QR code has been set
-        await m.reply_text("QR code has been set successfully.")
-    else:
-        # If the replied message is neither a photo nor a document containing photo media, send an error message
-        await m.reply_text("Please reply to a photo or a document containing photo media.")
-
-
-
-
+    # Get the photo file ID
+    photo_file_id = m.reply_to_message.photo.file_id
+    
+    # Download the photo and save it as the QR code file
+    await bot.download_media(photo_file_id, file_name=qr_code_filename)
+    
+    # Send a message to confirm that the QR code has been set
+    await m.reply_text("QR code has been set successfully.")
 
 # Callback to handle "send_screenshot" button press
 @bot.on_callback_query()
@@ -98,7 +85,6 @@ async def handle_screenshot(bot: Client, m: Message):
         # If the user did not reply to the correct message, send a message asking for a valid payment receipt
         await m.reply_text("Out of Time🥹, Please send a valid payment receipt with UTR Number.")
 
-
 # Handler for non-photo replies
 @bot.on_message(filters.reply & ~filters.photo)
 async def handle_invalid_payment_receipt(bot: Client, m: Message):
@@ -106,11 +92,6 @@ async def handle_invalid_payment_receipt(bot: Client, m: Message):
     if m.reply_to_message and m.reply_to_message.reply_markup and isinstance(m.reply_to_message.reply_markup, ForceReply):
         # If the user sends a non-photo reply, send a message asking for a valid payment receipt
         await m.reply_text("Please send a valid payment receipt with UTR Number.")
-
-
-
-
-
 
 @bot.on_message(filters.command(["start"]))
 async def account_login(bot: Client, m: Message):
@@ -120,10 +101,6 @@ async def account_login(bot: Client, m: Message):
 async def restart_handler(_, m):
     await m.reply_text("**Stopped**🚦", True)
     os.execl(sys.executable, sys.executable, *sys.argv)
-
-
-
-
 
 @bot.on_message(filters.command(["mahi"]))
 async def account_login(bot: Client, m: Message):
@@ -146,7 +123,8 @@ async def account_login(bot: Client, m: Message):
     input_msg: Message = await bot.listen(editable.chat.id)
     x = await input_msg.download()
     await input_msg.delete(True)
-     #Continue with the rest of the upload process...
+    # Continue with the rest of the upload process...
+
     
     path = f"./downloads/{m.chat.id}"
 
