@@ -30,11 +30,8 @@ bot = Client(
 
 
 
-# Variable to store the QR code filename
-qr_code_filename = "qr_code.jpg"
-
 # Handler for the "set" command
-@bot.on_message(filters.user(owner_user_id) & filters.command("set") & filters.reply & (filters.photo | filters.document))
+@bot.on_message(filters.user(owner_user_id) & filters.command("set") & filters.reply)
 async def set_qr_code(bot: Client, m: Message):
     # Check if the replied message is a photo or a document containing photo media
     if m.reply_to_message.photo or (m.reply_to_message.document and "image" in m.reply_to_message.document.mime_type):
