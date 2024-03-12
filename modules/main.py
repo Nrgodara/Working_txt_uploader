@@ -29,7 +29,7 @@ bot = Client(
     bot_token=bot_token)
 
 # Variable to store the QR code filename
-qr_code_filename = "qr_code.jpg"
+qr_code_filename = "qr_code"
 
 # Handler for the "set" command
 @bot.on_message(filters.user(owner_user_id) & filters.command("set") & filters.reply)
@@ -118,14 +118,14 @@ async def account_login(bot: Client, m: Message):
     if m.from_user.id not in premium_users:
         # If not a premium user, prompt them to upgrade with the QR code image
         text = (
-            "Upgrade to premium to access this feature.\n\n"
-            "Scan the QR code below and pay. After successful payment, share the screenshot for upgrading to Premium user."
+            "𝑺𝒐𝒓𝒓𝒚 𝑩𝒐𝒔𝒔 𝑶𝒏𝒍𝒚 𝑷𝒓𝒆𝒎𝒊𝒖𝒎 𝑼𝒔𝒆𝒓𝒔 𝑪𝒂𝒏 𝑼𝒔𝒆 𝑴𝒆, Uᴘɢʀᴀᴅᴇ ᴛᴏ ᴘʀᴇᴍɪᴜᴍ ᴛᴏ Usᴇ Mᴇ😎.\n\n"
+            "Sᴄᴀɴ ᴛʜᴇ QR ᴄᴏᴅᴇ ʙᴇʟᴏᴡ ᴀɴᴅ ᴘᴀʏ. Aғᴛᴇʀ sᴜᴄᴄᴇssғᴜʟ ᴘᴀʏᴍᴇɴᴛ, Vᴇʀɪғʏ Tʜᴇ Pᴀʏᴍᴇɴᴛ Aɴᴅ I'ʟʟ Aᴅᴅ Yᴏᴜ Tᴏ Pʀᴇᴍɪᴜᴍ Usᴇʀs✨"
         )
         keyboard = InlineKeyboardMarkup(
-            [[InlineKeyboardButton("Send Screenshot", callback_data="send_screenshot")]]
+            [[InlineKeyboardButton("Vᴇʀɪғʏ Pᴀʏᴍᴇɴᴛ", callback_data="send_screenshot")]]
         )
         # Send the QR code image as a photo along with the text and buttons
-        await m.reply_photo(photo=qr_code_filename, caption=text, reply_markup=keyboard)
+        await m.reply_media(media=qr_code_filename, caption=text, reply_markup=keyboard)
         return
 
     # If the user is a premium user, proceed with the upload process
